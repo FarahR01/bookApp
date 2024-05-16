@@ -27,6 +27,7 @@ import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Locale;
 
 public class MyApplication extends Application {
@@ -115,6 +116,35 @@ public class MyApplication extends Application {
                 });
 
     }
+    public static void incrementBookViewCount(String bookId) {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Books");
+        ref.child(bookId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        // Get views count
+                        String viewsCount = "" + snapshot.child("viewsCount").getValue();
+                        // In case of null replace with 0
+                        if (viewsCount.equals("") || viewsCount.equals("null")) {
+                            viewsCount = "0";
+                        }
+
+                        // 2) Increment views count
+                        long newViewsCount = Long.parseLong(viewsCount) + 1;
+
+                        HashMap<String, Object> hashMap = new HashMap<>();
+                        hashMap.put("viewsCount", newViewsCount);
+
+                        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Books");
+                        reference.child(bookId).updateChildren(hashMap);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        // Handle possible errors
+                    }
+                });
+    }
     public static void  loadPdfFromUrlSinglePage(String pdfUrl, String pdfTitle, PDFView pdfView, ProgressBar progressBar) {
         String TAG = "PDF_LOAD_SINGLE_TAG";
         StorageReference ref = FirebaseStorage.getInstance().getReferenceFromUrl(pdfUrl);
@@ -172,6 +202,7 @@ public class MyApplication extends Application {
                     }
                 });
     }
+
 
 
 }
